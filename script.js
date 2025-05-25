@@ -1,13 +1,3 @@
-// const originalClearInterval = window.clearInterval;
-// window.clearInterval = function(idToClear) {
-//   console.log(`[DEBUG_CLEAR_INTERVAL] Attempting to clear interval ID: ${idToClear}`);
-//   if (typeof trailEffectInterval !== 'undefined' && idToClear === trailEffectInterval && trailEffectInterval !== null) {
-//     console.warn(`[DEBUG_CLEAR_INTERVAL] !!!!! TARGET trailEffectInterval (ID: ${trailEffectInterval}) IS BEING CLEARED !!!!!`);
-//     // debugger;
-//   }
-//   originalClearInterval.call(window, idToClear);
-// };
-
 const game = document.getElementById('game');
 const player = document.getElementById('player');
 const scoreDisplay = document.getElementById('score');
@@ -32,8 +22,8 @@ const backToMenuBtn = document.getElementById('back-to-menu-btn');
 const liveCoinBankDisplay = document.getElementById('live-coin-bank');
 const shopCoinBankDisplaySpan = document.querySelector('#shop-current-coin-bank .shop-coin-value');
 const shopMessagePopup = document.getElementById('shop-message-popup');
-const shopPlayerPreviewElement = document.getElementById('shop-player-preview-element'); // For skin preview HUD
-const SLOW_SPAWN_RATE = 2500; // Added constant for slow spawn rate
+const shopPlayerPreviewElement = document.getElementById('shop-player-preview-element');
+const SLOW_SPAWN_RATE = 2500; 
 const gameWrapperEl = document.querySelector('.game-wrapper');
 const gameDiv = document.getElementById('game');
 const statsHighestLevelDisplay = document.getElementById('stats-highest-level');
@@ -89,14 +79,14 @@ let globalSpawnInterval = null;
 let globalLevelUpInterval = null;
 let globalHeartSpawnCheckInterval = null;
 let globalPowerUpSpawnInterval = null;
-let droneFireInterval = null; // Added for managing drone's firing
-let shopPreviewTrailInterval = null; // For managing shop trail previews
+let droneFireInterval = null; 
+let shopPreviewTrailInterval = null; 
 
 // Variables for Real-Time Stats Panel
 let gameStartTime = 0;
 let currentLongestStreak = 0;
-let gameOverProcessed = false; // Flag to prevent multiple endGame calls per session
-let comboRetentionUsedThisStreak = false; // Added for Combo Retention perk
+let gameOverProcessed = false; 
+let comboRetentionUsedThisStreak = false; 
 
 // DOM elements for stats display
 const statsAllTimeSurvivedDisplay = document.getElementById('stats-all-time-survived');
@@ -121,7 +111,7 @@ const SHOP_ITEMS = {
     comboRetention: { name: "Combo Retention", description: "Can miss 1 coin without breaking an active streak (once per streak).", cost: 1500, type: "comboCoinBonus" },
     streakBonusMultiplier: { name: "Streak Bonus Multiplier", description: "While in streak mode, each coin caught gives +1 extra coin (total 3 base coins per coin during streak).", cost: 2000, type: "comboCoinBonus" }
   },
-  survivalUpgrades: { // NEW CATEGORY
+  survivalUpgrades: { 
     heart_upgrade_max4: { name: "❤️ Heart Expansion", description: "Max hearts permanently increased to 4.", cost: 5000, type: "survivalUpgrade" },
     fast_heart_regen: { name: "⏱️ Accelerated Heart Regen", description: "Heart drops every 8 seconds when you're below max HP.", cost: 5000, type: "survivalUpgrade" },
     auto_emergency_slow: { name: "🧊 Emergency Slow Trigger", description: "When at 1 heart, instantly activates SLOW for 3 seconds.", cost: 5000, type: "survivalUpgrade" }
@@ -148,10 +138,10 @@ const POWERUP_UPGRADE_TIERS = {
 };
 
 let messageTimeout = null;
-function showShopMessage(message, type = 'info') { // type can be 'info', 'success', 'error'
+function showShopMessage(message, type = 'info') { 
   if (!shopMessagePopup) return;
   shopMessagePopup.textContent = message;
-  shopMessagePopup.className = 'shop-message-popup'; // Reset classes
+  shopMessagePopup.className = 'shop-message-popup'; 
   if (type === 'success') {
     shopMessagePopup.classList.add('success');
   } else if (type === 'error') {
@@ -162,7 +152,7 @@ function showShopMessage(message, type = 'info') { // type can be 'info', 'succe
   if (messageTimeout) clearTimeout(messageTimeout);
   messageTimeout = setTimeout(() => {
     shopMessagePopup.classList.remove('show');
-  }, 3000); // Message visible for 3 seconds
+  }, 3000); 
 }
 
 function updateStatsDisplay() {
@@ -197,24 +187,17 @@ if (statsHighestLevelDisplay) {
 }
 
 function applyEquippedBoardSkin() {
-  if (!player) return; // Make sure player element exists
+  if (!player) return; 
 
   const equippedSkinId = localStorage.getItem('equipped_boardSkin');
-  
-  // Remove any existing skin classes first
-  // This assumes skin class names are prefixed with 'skin-'
-  player.className = ''; // Reset classes to just the base player id if needed, or manage more carefully
-  // A safer way to remove only skin classes if player might have other utility classes:
+
+  player.className = '';
   Object.values(SHOP_ITEMS.boardSkins).forEach(skin => {
-    player.classList.remove('skin-' + skin.name.toLowerCase().replace(/\s+/g, '')); // Example: skin-neonbluecore
-     // We need to be careful with how we generate the class name from the ID.
-     // Let's use the itemId from dataset directly.
+    player.classList.remove('skin-' + skin.name.toLowerCase().replace(/\s+/g, '')); 
      player.classList.remove('skin-' + Object.keys(SHOP_ITEMS.boardSkins).find(key => SHOP_ITEMS.boardSkins[key] === skin));
   });
-  // Re-add base player class if it was removed by player.className = ''
-  // player.classList.add('player-base-class'); // If you have one
 
-  // More robustly: iterate defined skins and remove their classes
+
   for (const skinId in SHOP_ITEMS.boardSkins) {
     player.classList.remove('skin-' + skinId);
   }
@@ -223,7 +206,6 @@ function applyEquippedBoardSkin() {
     player.classList.add('skin-' + equippedSkinId);
     console.log("Applied skin: " + equippedSkinId);
   } else {
-    // No skin equipped, ensure default appearance (which it should have if all skin classes are removed)
     console.log("No board skin equipped, using default.");
   }
 }
@@ -259,18 +241,15 @@ function updateHearts() {
   const heartIcons = document.querySelectorAll('#hearts .heart');
   const currentMaxHealth = getMaxHealth();
   heartIcons.forEach((heart, index) => {
-    // Show heart if index < current health
-    // Dim heart if index >= current health but < currentMaxHealth (for empty slots up to max)
-    // Hide heart if index >= currentMaxHealth (for any extra heart images beyond max)
     if (index < health) {
       heart.style.opacity = '1';
-      heart.style.display = 'inline-block'; // Ensure visible
+      heart.style.display = 'inline-block'; 
     } else if (index < currentMaxHealth) {
       heart.style.opacity = '0.2';
-      heart.style.display = 'inline-block'; // Ensure empty slots are visible but dimmed
+      heart.style.display = 'inline-block'; 
     } else {
-      heart.style.opacity = '0'; // Effectively hide hearts beyond current max
-      heart.style.display = 'none';  // Actually hide hearts beyond current max
+      heart.style.opacity = '0'; 
+      heart.style.display = 'none'; 
     }
     heart.classList.remove('pop', 'gained-animation'); 
   });
@@ -294,7 +273,6 @@ function summonDrone() {
   const drone = document.getElementById('drone');
   drone.style.display = 'block';
 
-  // Clear any existing drone fire interval before starting a new one
   if (droneFireInterval) {
     clearInterval(droneFireInterval);
     droneFireInterval = null;
@@ -302,8 +280,7 @@ function summonDrone() {
 
   droneFireInterval = setInterval(() => {
     if (!gameRunning || !document.getElementById('drone') || document.getElementById('drone').style.display === 'none') {
-      // Added checks for drone existence and display
-      if(droneFireInterval) clearInterval(droneFireInterval); // Stop if drone is gone or game stopped
+      if(droneFireInterval) clearInterval(droneFireInterval); 
       droneFireInterval = null;
       return;
     }
@@ -315,10 +292,10 @@ function summonDrone() {
       clearInterval(droneFireInterval);
       droneFireInterval = null;
     }
-    // Ensure drone div is hidden if this timeout completes normally
+    
     const droneDiv = document.getElementById('drone');
     if (droneDiv) droneDiv.style.display = 'none';
-  }, 5000); // Drone active for 5 seconds
+  }, 5000);
 }
 
 function createBullet() {
@@ -389,7 +366,7 @@ setInterval(() => {
 
 updateHearts();
 displayMainMenuHighScore();
-updateStatsDisplay(); // Initial call
+updateStatsDisplay(); 
 
 // Global variable to store the interval ID for trail effects
 let trailEffectInterval = null;
@@ -426,19 +403,16 @@ function applyEquippedTrailEffect() {
         trailEffectInterval = null;
         return;
       }
-      // console.log(`[Trail] Interval TICK for ${equippedTrailId}`); // Optional: too noisy
 
       const particle = document.createElement('div');
       particle.classList.add('trail-particle');
       let particleTypeClass = '';
 
-      // Set random values for CSS custom properties
-      // For fire sparks, --random-xs for small horizontal jitter, --random-xl for wider spread at end
-      particle.style.setProperty('--random-xs', (Math.random() * 2 - 1).toFixed(2)); // -1 to 1
-      particle.style.setProperty('--random-xl', (Math.random() * 2 - 1).toFixed(2)); // -1 to 1
+      particle.style.setProperty('--random-xs', (Math.random() * 2 - 1).toFixed(2));
+      particle.style.setProperty('--random-xl', (Math.random() * 2 - 1).toFixed(2)); 
       
       // For electric static, --random-angle for initial rotation, --random-xs for jitter
-      particle.style.setProperty('--random-angle', (Math.random() * 90 - 45).toFixed(0)); // -45 to 45 degrees
+      particle.style.setProperty('--random-angle', (Math.random() * 90 - 45).toFixed(0)); 
 
       if (equippedTrailId === 'fireSparks') {
         particleTypeClass = 'trail-fire-spark';
@@ -520,7 +494,7 @@ if (shopScreen) shopScreen.style.display = 'none';
     console.log("[StartGameLogic] Setting gameWrapper display to block.");
     gameWrapperEl.style.display = 'block'; 
   } else {
-    console.error("[StartGameLogic] CRITICAL: gameWrapperEl NOT FOUND!"); return; // Stop if no wrapper
+    console.error("[StartGameLogic] CRITICAL: gameWrapperEl NOT FOUND!"); return; 
   }
   
   const gameDiv = document.getElementById('game');
@@ -532,23 +506,21 @@ if (shopScreen) shopScreen.style.display = 'none';
     if (starsFar) console.log(`[StartGameLogic] .stars-far computed display: ${window.getComputedStyle(starsFar).display}`);
     else console.log("[StartGameLogic] .stars-far not found");
   } else {
-    console.error("[StartGameLogic] CRITICAL: gameDiv NOT FOUND!"); return; // Stop if no game div
+    console.error("[StartGameLogic] CRITICAL: gameDiv NOT FOUND!"); return; 
   }
 
   // Reset game state variables
   console.log("[StartGameLogic] Resetting core game variables (score, level, health, playerX, etc.).");
   score = 0;
   level = 1;
-  // health = getMaxHealth(); // This is already in your code, ensure it works
-  // playerX = 160; // This is already in your code
   // ... many other resets ...
   gameOverProcessed = false;
   console.log(`[StartGameLogic] gameOverProcessed set to: ${gameOverProcessed}`);
   
   // Other resets like gameStartTime, currentLongestStreak should be here too if they are part of the game state reset
-  gameStartTime = Date.now(); // Example: ensure this is reset before gameRunning is true
-  currentLongestStreak = 0; // Example
-  highScoreBeatenThisGame = false; // Example
+  gameStartTime = Date.now(); 
+  currentLongestStreak = 0; 
+  highScoreBeatenThisGame = false; 
   
   // Ensure critical player state is reset BEFORE gameRunning is true and trails/skins are applied
   health = getMaxHealth();
@@ -556,7 +528,7 @@ if (shopScreen) shopScreen.style.display = 'none';
   if (player) player.style.left = playerX + 'px';
   moveLeft = false;
   moveRight = false;
-  spawnDelay = 1500; // Reset to default
+  spawnDelay = 1500; 
   isSlow = false;
   isMagnet = false;
   isDouble = false;
@@ -578,8 +550,8 @@ if (shopScreen) shopScreen.style.display = 'none';
   if (gameElement && gameElement.classList.contains('shake')) {
     gameElement.classList.remove('shake');
   }
-  document.body.className = ''; // Reset body classes
-  if(gameDiv) gameDiv.className = ''; // Reset game div classes (important if themes add classes here)
+  document.body.className = '';
+  if(gameDiv) gameDiv.className = ''; 
 
   const heartLossPopup = document.getElementById('heart-popup');
   if (heartLossPopup) {
@@ -606,14 +578,13 @@ if (shopScreen) shopScreen.style.display = 'none';
   console.log(`[StartGameLogic] gameRunning is now: ${gameRunning}`);
 
   if (player) {
-    // Player positioning already done, this is a good place for skin/trail
     console.log("[StartGameLogic] Applying equipped board skin and trail effect (AFTER gameRunning=true).");
     applyEquippedBoardSkin(); 
     applyEquippedTrailEffect();
   } else {
     console.error("[StartGameLogic] CRITICAL: Player element not found before applying skin/trail!");
   }
-  
+
   // Start new game intervals
   console.log(`[StartGameLogic] Initializing spawnInterval with delay: ${spawnDelay}`);
   globalSpawnInterval = setInterval(createFallingObject, spawnDelay);
@@ -626,7 +597,6 @@ if (shopScreen) shopScreen.style.display = 'none';
   console.log("[StartGameLogic] Initializing powerUpSpawnInterval.");
   globalPowerUpSpawnInterval = setInterval(() => {
     if (gameRunning) {
-      // console.log("[Interval] PowerUpSpawn tick, gameRunning=true"); // Can be noisy
       createPowerUp();
     }
   }, 7000);
@@ -661,7 +631,7 @@ function removeAllFallingObjects() {
       if (!isNaN(intervalId)) {
         clearInterval(intervalId);
       }
-      delete obj.dataset.fallIntervalId; // Clean up the dataset attribute
+      delete obj.dataset.fallIntervalId; 
     }
     obj.remove();
   });
@@ -676,7 +646,6 @@ function removeActiveBoss() {
   if (drone && drone.style.display === 'block') {
       drone.style.display = 'none';
   }
-  // Clear drone's firing interval
   if (droneFireInterval) {
     clearInterval(droneFireInterval);
     droneFireInterval = null;
@@ -687,8 +656,7 @@ startBtn.addEventListener('click', startGameLogic);
 
 tryAgainBtn.addEventListener('click', () => {
   if (gameOverScreen) gameOverScreen.style.display = 'none'; 
-  document.documentElement.classList.remove('game-is-over-html-override'); // ADDED FOR HTML ELEMENT
-  // The gameOverProcessed = false; is handled by startGameLogic
+  document.documentElement.classList.remove('game-is-over-html-override');
   console.warn("[TryAgainBtn] Clicked. Hiding GOS. Calling startGameLogic.");
   startGameLogic();
 });
@@ -737,7 +705,7 @@ function createFallingObject() {
     const paddleLine = 650;
     const objectBottom = pos + obj.offsetHeight;
 
-    if (objectBottom >= paddleLine && pos <= paddleLine) { // Object is in the paddle's Y-range
+    if (objectBottom >= paddleLine && pos <= paddleLine) { 
       const objX = parseInt(obj.style.left);
       const caught = objX > playerX - 30 && objX < playerX + 80;
 
@@ -781,43 +749,33 @@ function createFallingObject() {
         }
         clearInterval(fallIntervalId);
         requestAnimationFrame(() => obj.remove());
-        return; // Caught object, so exit interval callback for this object
-      } else { // Object is at paddle line but NOT caught
+        return; 
+      } else {
         if (objType === 'coin') {
-          // FIRST, check if this specific coin has already been processed for retention
           if (obj.dataset.retentionForgiven === 'true') {
-            // This coin was already forgiven, do nothing more for streak logic here.
-            // It will continue to fall and be handled by the pos >= 700 logic.
-            // console.log(`[RetentionDebug] Missed coin (${obj.offsetLeft}px) already flagged as forgiven, allowing to fall.`);
           } else if (streakActive) {
             const perkOwned = localStorage.getItem('comboRetention') === 'true';
-            // Using a slightly different log prefix for this version of the fix
             console.log(`[ComboRetentionV3] Missed coin (${obj.offsetLeft}px). Streak Active. Perk: ${perkOwned}. Global Retention Used: ${comboRetentionUsedThisStreak}.`);
             if (perkOwned && !comboRetentionUsedThisStreak) {
-              comboRetentionUsedThisStreak = true;      // Mark global retention as used for this streak period
-              obj.dataset.retentionForgiven = 'true'; // Flag THIS specific coin
+              comboRetentionUsedThisStreak = true;    
+              obj.dataset.retentionForgiven = 'true'; 
               console.log("[ComboRetentionV3] Combo Retention Used! Streak SAVED for this specific coin.");
-              // NO return here. The coin is now flagged. It will continue to fall.
-              // The next time this setInterval runs for this coin, the `obj.dataset.retentionForgiven === 'true'` check above will catch it.
             } else {
-              // Streak is lost if: no perk, or global retention already used (and this coin wasn't the one that used it, because it would have been caught by the `if` block that sets retentionForgiven).
               console.log(`[ComboRetentionV3] Streak LOST. Conditions: Perk Owned: ${perkOwned}, Global Retention Used: ${comboRetentionUsedThisStreak}.`);
               showLoseStreak();
               streakCount = 0;
               streakActive = false;
             }
-          } else { // Streak was not active when this coin was missed at paddle line
+          } else {
             console.log(`[ComboRetentionV3] Missed coin (${obj.offsetLeft}px). Streak NOT Active.`);
-            streakCount = 0; // Reset count, though streak wasn't active
+            streakCount = 0; 
           }
         }
-        // If it was a bomb and not caught, it just continues falling. No special logic here for bombs.
       }
-    } // End of (objectBottom >= paddleLine && pos <= paddleLine)
+    } 
 
-    if (pos >= 700) { // Object went off-screen
+    if (pos >= 700) { 
       if (obj.dataset.retentionForgiven === 'true') {
-          // Log when a forgiven coin is finally removed.
           console.log(`[ComboRetentionV3] Forgiven coin (${obj.offsetLeft}px) removed from bottom of screen.`);
       }
       if (objType === 'bomb' || objType === 'fast-bomb') {
@@ -833,14 +791,13 @@ function createFallingObject() {
 
 function ensureHeartSpawnMechanism() {
   const currentMaxHealth = getMaxHealth();
-  if (health < currentMaxHealth && !heartCheckInterval) { // Use dynamic max health
-    canSpawnHeart = false; // Initialize
+  if (health < currentMaxHealth && !heartCheckInterval) {
+    canSpawnHeart = false; 
     
     const regenTime = localStorage.getItem('fast_heart_regen') === 'true' ? 8000 : 10000;
-    // console.log(`[HeartRegen] Setting heart regen interval to: ${regenTime / 1000}s`); // Optional: for debugging
 
     heartCheckInterval = setInterval(() => {
-      if (!gameRunning || health >= currentMaxHealth) { // Use dynamic max health
+      if (!gameRunning || health >= currentMaxHealth) {
         clearInterval(heartCheckInterval);
         heartCheckInterval = null;
         return;
@@ -848,13 +805,13 @@ function ensureHeartSpawnMechanism() {
       canSpawnHeart = true;
       createHeart();
       canSpawnHeart = false;
-    }, regenTime); // Use the determined regenTime
+    }, regenTime); 
   }
 }
 
 function createHeart() {
   const currentMaxHealth = getMaxHealth();
-  if (health >= currentMaxHealth) { // Check against dynamic max health
+  if (health >= currentMaxHealth) { 
     if (heartCheckInterval) {
       clearInterval(heartCheckInterval);
       heartCheckInterval = null;
@@ -885,13 +842,13 @@ function createHeart() {
         const heartX = parseInt(heart.style.left);
         const caught = heartX > playerX - 30 && heartX < playerX + 80;
 
-        if (caught && health < currentMaxHealth) { // Check against dynamic max health before incrementing
+        if (caught && health < currentMaxHealth) { 
           const gainedHeartIndex = health;
           health++;
           updateHearts();
           animateHeartIcon(gainedHeartIndex, 'gained-animation');
           showHeartGained();
-          if (health === currentMaxHealth && heartCheckInterval) { // Check against dynamic max health
+          if (health === currentMaxHealth && heartCheckInterval) {
             clearInterval(heartCheckInterval);
             heartCheckInterval = null;
           }
@@ -925,13 +882,12 @@ function loseHealth() {
   void popup.offsetWidth;
   popup.style.animation = 'heart-popup 1s ease';
 
-  // Emergency Slow Trigger perk activation
   if (health === 1 && localStorage.getItem('auto_emergency_slow') === 'true') {
     console.log('[EmergencySlow] Triggering automatic SLOW effect');
     activateSlow();
   }
 
-  if (health <= 0 && gameRunning) { // ADDED && gameRunning check here
+  if (health <= 0 && gameRunning) { 
     endGame('💀 You ran out of health!');
   }
   ensureHeartSpawnMechanism();
@@ -941,7 +897,7 @@ function createPowerUp() {
   const types = ['slow', 'magnet', 'double'];
   const type = types[Math.floor(Math.random() * types.length)];
   
-  console.log('[PowerUpSpawn] Creating power-up of type:', type); // DIAGNOSTIC LOG
+  console.log('[PowerUpSpawn] Creating power-up of type:', type); 
   
   const p = document.createElement('div');
   p.classList.add('powerup', type, 'falling');
@@ -986,17 +942,17 @@ function getPowerupDuration(powerupType) {
   let baseDuration = 0;
 
   if (powerupType === 'slow' || powerupType === 'magnet') {
-    baseDuration = 5000; // Base 5 seconds before any tier upgrades
+    baseDuration = 5000;
     const tiers = POWERUP_UPGRADE_TIERS[powerupType];
     if (localStorage.getItem(tiers[2].id) === 'true') return 8000; // Tier 3 -> 8s
     if (localStorage.getItem(tiers[1].id) === 'true') return 7000; // Tier 2 -> 7s
     if (localStorage.getItem(tiers[0].id) === 'true') return 6000; // Tier 1 -> 6s
-    return baseDuration; // No tiers purchased, return base
+    return baseDuration; 
 
   } else if (powerupType === 'double') {
-    baseDuration = 10000; // 10 seconds base for double
+    baseDuration = 10000; 
     let percentageBoost = 0;
-    const tiers = POWERUP_UPGRADE_TIERS[powerupType]; // double tiers
+    const tiers = POWERUP_UPGRADE_TIERS[powerupType]; 
     if (localStorage.getItem(tiers[2].id) === 'true') { 
       percentageBoost = 0.30; // 30%
     } else if (localStorage.getItem(tiers[1].id) === 'true') { 
@@ -1007,7 +963,7 @@ function getPowerupDuration(powerupType) {
     return baseDuration * (1 + percentageBoost);
 
   } else {
-    return 0; // Unknown powerup type
+    return 0; 
   }
 }
 
@@ -1019,13 +975,11 @@ let activePowerups = {
 };
 
 function showPowerupTimer(type, durationInSeconds) {
-  // Clear any existing countdown interval for this powerup type's icon
   if (activePowerups[type] && activePowerups[type].iconCountdownIntervalId) {
     clearInterval(activePowerups[type].iconCountdownIntervalId);
     activePowerups[type].iconCountdownIntervalId = null;
   }
 
-  // Remove existing icon DOM element if present, before creating a new one
   const existingIconEl = document.getElementById(`icon-${type}`);
   if (existingIconEl) {
     existingIconEl.remove();
@@ -1040,9 +994,8 @@ function showPowerupTimer(type, durationInSeconds) {
   let time = durationInSeconds;
   const countdownIntervalId = setInterval(() => {
     time--;
-    // Ensure icon still exists before trying to update it
     const currentIcon = document.getElementById(`icon-${type}`); 
-    if (!currentIcon) { // Icon might have been removed by a new powerup activation
+    if (!currentIcon) {
         clearInterval(countdownIntervalId);
         if(activePowerups[type]) activePowerups[type].iconCountdownIntervalId = null;
         return;
@@ -1056,48 +1009,41 @@ function showPowerupTimer(type, durationInSeconds) {
     }
   }, 1000);
   
-  return countdownIntervalId; // Return the ID of this new interval
+  return countdownIntervalId; 
 }
 
 function activateSlow() {
   const powerupType = 'slow';
-  isSlow = true; // Apply effect immediately
+  isSlow = true;
   showPowerupActivationPopup(powerupType);
 
   // Clear existing effect timeout and icon countdown interval for this powerup type
   if (activePowerups[powerupType].effectTimeoutId) {
     clearTimeout(activePowerups[powerupType].effectTimeoutId);
   }
-  // showPowerupTimer already handles clearing its own old interval and icon DOM
 
-  // Check if this is an emergency slow trigger activation
   const isEmergencySlow = health === 1 && localStorage.getItem('auto_emergency_slow') === 'true';
   
-  // Get the base duration (either emergency 3s or power-up duration)
   const baseDuration = isEmergencySlow ? 3000 : getPowerupDuration(powerupType);
   
-  // Calculate remaining time from any existing slow effect
   let remainingDuration = 0;
   if (activePowerups[powerupType].expiresAt > Date.now()) {
     remainingDuration = activePowerups[powerupType].expiresAt - Date.now();
   }
   
-  // Add the new duration to any remaining time
   const totalDuration = baseDuration + remainingDuration;
   
   activePowerups[powerupType].expiresAt = Date.now() + totalDuration;
   activePowerups[powerupType].iconCountdownIntervalId = showPowerupTimer(powerupType, totalDuration / 1000);
 
-  // Specific effect for slow: adjust game's spawn interval
   if (globalSpawnInterval) clearInterval(globalSpawnInterval);
-  globalSpawnInterval = setInterval(createFallingObject, SLOW_SPAWN_RATE); // Use constant
+  globalSpawnInterval = setInterval(createFallingObject, SLOW_SPAWN_RATE);
 
   activePowerups[powerupType].effectTimeoutId = setTimeout(() => {
     isSlow = false;
-    // Restore normal spawn interval ONLY if no other slow effect has since been activated
     if (activePowerups[powerupType].expiresAt <= Date.now()) { 
         if (globalSpawnInterval) clearInterval(globalSpawnInterval);
-        globalSpawnInterval = setInterval(createFallingObject, spawnDelay); // Restore original spawnDelay
+        globalSpawnInterval = setInterval(createFallingObject, spawnDelay); 
     }
     activePowerups[powerupType].effectTimeoutId = null;
     activePowerups[powerupType].expiresAt = 0;
@@ -1106,7 +1052,7 @@ function activateSlow() {
 
 function activateMagnet() {
   const powerupType = 'magnet';
-  isMagnet = true; // Apply effect
+  isMagnet = true; 
   showPowerupActivationPopup(powerupType);
 
   if (activePowerups[powerupType].effectTimeoutId) {
@@ -1132,7 +1078,7 @@ function activateMagnet() {
 
 function activateDouble() {
   const powerupType = 'double';
-  isDouble = true; // Apply effect
+  isDouble = true;
   showPowerupActivationPopup(powerupType);
 
   if (activePowerups[powerupType].effectTimeoutId) {
@@ -1166,7 +1112,7 @@ function endGame(message) {
  
    console.warn("[EndGame] Setting gameRunning = false.");
    gameRunning = false;
-   clearAllGameIntervals(); // Clears game-specific intervals
+   clearAllGameIntervals();
 
    const gameWrapperEl = document.querySelector('.game-wrapper');
    const gameDivEl = document.getElementById('game');
@@ -1183,7 +1129,7 @@ function endGame(message) {
         z-index: -10 !important;
        `;
    }
-   if (gameDivEl) { // gameDiv is inside gameWrapper
+   if (gameDivEl) { 
        console.warn("[EndGame] Aggressively hiding gameDiv via JS.");
        gameDivEl.style.cssText = `
         display: none !important; 
@@ -1194,7 +1140,7 @@ function endGame(message) {
 
    console.warn("[EndGame] Adding .game-is-over to body.");
    document.body.classList.add('game-is-over');
-   document.documentElement.classList.add('game-is-over-html-override'); // ADDED FOR HTML ELEMENT
+   document.documentElement.classList.add('game-is-over-html-override'); 
 
    const timeSurvivedThisGame = (Date.now() - gameStartTime) / 1000;
    let totalSurvived = parseFloat(localStorage.getItem('allTimeSurvivedSeconds')) || 0;
@@ -1232,8 +1178,6 @@ if (level > highestLevel) {
    requestAnimationFrame(() => {
     console.warn("[EndGame rAF] Verifying gameOverScreen state.");
     if (gameOverScreen) {
-        // CSS class body.game-is-over should primarily handle styling.
-        // JS ensures display is 'block' if it somehow was 'none'.
         if (window.getComputedStyle(gameOverScreen).display === 'none') {
             console.warn("[EndGame rAF] gameOverScreen computed display is none, forcing to block via JS.");
             gameOverScreen.style.display = 'block'; 
@@ -1254,7 +1198,7 @@ if (level > highestLevel) {
                 console.warn(`[EndGame rAF Check] gameWrapperEl computed: display=${gwStyles.display}`);
                 if (gwStyles.display !== 'none') {
                     console.error("[EndGame rAF Check] gameWrapper still visible! Destroying its content as last resort.");
-                    gameWrapperEl.innerHTML = ''; // Extreme measure
+                    gameWrapperEl.innerHTML = ''; 
                 }
             }
         }, 100); 
@@ -1293,7 +1237,7 @@ function showLoseStreak() {
 
 function activateStreak() {
   streakActive = true;
-  comboRetentionUsedThisStreak = false; // Reset here as well
+  comboRetentionUsedThisStreak = false; 
 
   const popup = document.getElementById('streak-popup');
   const main = document.getElementById('streak-main');
@@ -1517,8 +1461,6 @@ function resetHighScoreForTesting() {
   if (menuHighScoreDisplay) menuHighScoreDisplay.textContent = `Highest Score: ${highScore}`;
 }
 
-// The following is a placeholder to acknowledge the user's next action.
-// No actual code change is intended by this block for script.js through the tool.
 console.log("User to update script.js manually.");
 
 function showLevelTransition(themeName, postTransitionCallback) {
@@ -1535,7 +1477,7 @@ function showLevelTransition(themeName, postTransitionCallback) {
         clearInterval(globalHeartSpawnCheckInterval); globalHeartSpawnCheckInterval = null;
     }
     if(globalPowerUpSpawnInterval) clearInterval(globalPowerUpSpawnInterval); globalPowerUpSpawnInterval = null;
-    if(trailEffectInterval) { // Clear trail effect during transition
+    if(trailEffectInterval) { 
         clearInterval(trailEffectInterval);
         trailEffectInterval = null;
         console.log('[Transition] Cleared trailEffectInterval.');
@@ -1579,14 +1521,13 @@ function showLevelTransition(themeName, postTransitionCallback) {
             player.style.animationPlayState = 'running';
           }
           
-          // Determine correct spawn rate after transition
           const currentSpawnRate = isSlow ? SLOW_SPAWN_RATE : spawnDelay;
           if (!globalSpawnInterval) globalSpawnInterval = setInterval(createFallingObject, currentSpawnRate);
           
           if (!globalLevelUpInterval) globalLevelUpInterval = setInterval(levelUpLogic, 5000);
           if (!globalPowerUpSpawnInterval) globalPowerUpSpawnInterval = setInterval(() => { if (gameRunning) createPowerUp(); }, 7000);
           ensureHeartSpawnMechanism();
-          applyEquippedTrailEffect(); // Re-apply trail effect after transition
+          applyEquippedTrailEffect(); 
           console.log('[Transition] Re-applied trailEffectInterval.');
         }, objectFadeOutDuration);
       }, overlayFadeOutDuration); 
@@ -1596,24 +1537,20 @@ function showLevelTransition(themeName, postTransitionCallback) {
 
 function levelUpLogic() {
   if (isBossActive && !gameRunning) { 
-    // If isBossActive is true, but gameRunning is false, we are likely in a transition.
-    // The transition will handle resuming the game and intervals.
-    // However, the levelUpLogic interval itself will be restarted by the transition, so we just return here.
     return;
   }
-  if (isBossActive) return; // Standard check if a boss is normally active
+  if (isBossActive) return; 
 
   level++;
   let themeChanged = false;
   let newThemeName = "";
-  let postTransitionActions = null; // Function to run after transition and game resumption
+  let postTransitionActions = null; 
 
   if (level === 11) {
     themeChanged = true;
     newThemeName = "The Neon Sector";
     postTransitionActions = () => {
-      game.className = 'game-theme-neon-grid'; // Apply to #game
-      // Clear old theme elements if any
+      game.className = 'game-theme-neon-grid'; 
       const oldSkyElements = document.getElementById('sky-element-wrapper');
       if (oldSkyElements) oldSkyElements.remove();
 
@@ -1626,11 +1563,9 @@ function levelUpLogic() {
     themeChanged = true;
     newThemeName = "The Sky Realm";
     postTransitionActions = () => {
-      game.className = 'game-theme-sky-realm'; // Apply to #game
-      // Clear old theme elements if any (e.g. from neon grid)
-      // Add new sky elements for the sky realm
+      game.className = 'game-theme-sky-realm'; 
       const existingSkyWrapper = document.getElementById('sky-element-wrapper');
-      if (existingSkyWrapper) existingSkyWrapper.remove(); // Remove if somehow already exists
+      if (existingSkyWrapper) existingSkyWrapper.remove(); 
 
       const skyElementWrapper = document.createElement('div');
       skyElementWrapper.id = 'sky-element-wrapper';
@@ -1638,13 +1573,13 @@ function levelUpLogic() {
 
       const cloudFar1 = document.createElement('div');
       cloudFar1.classList.add('sky-element', 'cloud-far');
-      cloudFar1.style.left = '10%'; // Stagger initial positions
+      cloudFar1.style.left = '10%'; 
       skyElementWrapper.appendChild(cloudFar1);
 
       const cloudFar2 = document.createElement('div');
       cloudFar2.classList.add('sky-element', 'cloud-far');
       cloudFar2.style.left = '60%';
-      cloudFar2.style.animationDelay = '-90s'; // Offset animation
+      cloudFar2.style.animationDelay = '-90s'; 
       skyElementWrapper.appendChild(cloudFar2);
 
       const cloudNear1 = document.createElement('div');
@@ -1661,17 +1596,16 @@ function levelUpLogic() {
       const city1 = document.createElement('div');
       city1.classList.add('sky-element', 'floating-city');
       city1.style.left = '15%';
-      city1.style.bottom = '5%'; // Slightly different vertical positioning
+      city1.style.bottom = '5%';
       skyElementWrapper.appendChild(city1);
 
       const city2 = document.createElement('div');
       city2.classList.add('sky-element', 'floating-city');
       city2.style.left = '75%';
-      city2.style.transform = 'scaleX(-1)'; // Flip one for variation
+      city2.style.transform = 'scaleX(-1)';
       city2.style.animationDelay = '-20s';
       skyElementWrapper.appendChild(city2);
       
-      // Prepend to game div so it's behind other game elements if z-index is similar
       game.prepend(skyElementWrapper);
 
       spawnDelay = Math.max(300, spawnDelay - 100 - level * 5);
@@ -1683,41 +1617,21 @@ function levelUpLogic() {
 
   if (themeChanged) {
     showLevelTransition(newThemeName, postTransitionActions);
-    // The rest of levelUpLogic (boss spawning) will run AFTER showLevelTransition completes and resumes intervals,
-    // because globalLevelUpInterval is cleared and restarted by showLevelTransition.
-    // This call to levelUpLogic effectively terminates here for theme changes.
   } else {
-    // Normal level up without theme change
     levelDisplay.textContent = `Level: ${level}`;
     levelDisplay.classList.add('level-boost');
     setTimeout(() => levelDisplay.classList.remove('level-boost'), 500);
     
     spawnDelay = Math.max(300, spawnDelay - 100 - level * 5);
     
-    if (!isSlow) { // Only reset interval if slow is NOT active
+    if (!isSlow) {
       if(globalSpawnInterval) clearInterval(globalSpawnInterval);
       globalSpawnInterval = setInterval(createFallingObject, spawnDelay);
-    } // If isSlow is true, spawnDelay is updated, but the interval continues at SLOW_SPAWN_RATE
-      // until the slow power-up expires.
-
-    // Boss spawning logic for non-theme-change levels
+    } 
     if (level % 10 === 5) summonDrone();
     else if (level === 10) spawnFirstBoss();
     else if (level === 20) spawnSecondBoss();
   }
-  // If it was a theme change, the boss spawning for the *new* level needs to be handled
-  // when levelUpLogic runs *after* the transition. The issue is that levelUpLogic is an interval.
-  // The current structure means boss spawning might be missed for levels 11 and 21 if they also align with boss spawns.
-  // This needs a slight rethink on WHEN boss logic runs relative to theme change completion.
-
-  // Let's adjust: Boss spawning should ALWAYS be checked after level increment, 
-  // regardless of theme change or not. But if a theme change happened, it must happen
-  // AFTER the game is resumed by showLevelTransition.
-  // This implies showLevelTransition's callback needs to also trigger boss checks OR
-  // levelUpLogic needs to be structured to run its latter half post-transition.
-
-  // Simpler: For theme change levels, the boss spawning logic will run when levelUpLogic is next called
-  // by the newly started globalLevelUpInterval AFTER the transition. This is acceptable.
 }
 
 // Event listener for the Main Menu button on Game Over screen (RESTORED)
@@ -1731,7 +1645,7 @@ if (mainMenuBtn) {
     gameOverProcessed = false; 
     console.warn("[MainMenuBtn GOS] Removing .game-is-over from body.");
     document.body.classList.remove('game-is-over'); 
-    document.documentElement.classList.remove('game-is-over-html-override'); // ADDED FOR HTML ELEMENT
+    document.documentElement.classList.remove('game-is-over-html-override');
   });
 }
 
@@ -1753,7 +1667,7 @@ if (backToMenuBtn) {
     menu.style.display = 'block';
     updateStatsDisplay(); 
     if (shopPlayerPreviewElement) updateShopPlayerPreview(null);
-    stopShopTrailPreview(); // Stop trail previews when leaving shop
+    stopShopTrailPreview(); 
   });
 }
 
@@ -1805,7 +1719,7 @@ function refreshShopItemStates() {
           }
         }
       } else {
-        actionButton.textContent = `Buy (${itemCost}💰)`; // Text includes cost
+        actionButton.textContent = `Buy (${itemCost}💰)`; 
         actionButton.classList.add('action-buy');
       }
     } else if (itemType === 'powerupUpgrade') {
@@ -1876,15 +1790,15 @@ function refreshShopItemStates() {
         actionButton.disabled = true;
         actionButton.classList.remove('action-buy');
       } else {
-        actionButton.textContent = `Buy (${itemCost}💰)`; // Set button text to include cost
+        actionButton.textContent = `Buy (${itemCost}💰)`; 
         actionButton.classList.add('action-buy');
         actionButton.dataset.itemId = itemId;
         actionButton.dataset.itemCost = itemCost; 
       }
-    } else if (itemType === 'survivalUpgrade') { // NEW ELSE IF BLOCK
+    } else if (itemType === 'survivalUpgrade') { 
       const itemId = itemDiv.dataset.itemId;
       const itemCost = parseInt(itemDiv.dataset.itemCost);
-      const itemData = SHOP_ITEMS.survivalUpgrades[itemId]; // Ensure this points to the correct category
+      const itemData = SHOP_ITEMS.survivalUpgrades[itemId];
 
       if (!itemId || isNaN(itemCost) || !itemData) {
         actionButton.textContent = 'Error';
@@ -1899,7 +1813,7 @@ function refreshShopItemStates() {
       } else {
         actionButton.textContent = `Buy (${itemCost}💰)`;
         actionButton.classList.add('action-buy');
-        actionButton.dataset.itemId = itemId; // Ensure these are set for the button if not already
+        actionButton.dataset.itemId = itemId; 
         actionButton.dataset.itemCost = itemCost;
       }
     }
@@ -1915,14 +1829,11 @@ document.getElementById('shop-screen').addEventListener('click', function(event)
     const previewItemId = targetButton.dataset.previewItemId;
     const previewItemType = targetButton.dataset.previewItemType;
     
-    stopShopTrailPreview(); // Stop any current trail preview first
+    stopShopTrailPreview();
 
     if (previewItemType === 'boardSkin') {
       updateShopPlayerPreview(previewItemId);
-      // No trail starts for skin preview unless explicitly designed
     } else if (previewItemType === 'trailEffect') {
-      // When previewing a trail, we might want the preview paddle to be default or a specific preview skin
-      // updateShopPlayerPreview(null); // Optional: set paddle to default when previewing a trail
       startShopTrailPreview(previewItemId);
     }
     return; 
@@ -1937,18 +1848,14 @@ document.getElementById('shop-screen').addEventListener('click', function(event)
     }
     const itemType = itemDiv.dataset.itemType;
     
-    // Get itemId and itemCost from the button itself for powerupUpgrades, as they are dynamic
-    // For other types, they can be from itemDiv, but using button's data consistently is fine.
-    const itemId = targetButton.dataset.itemId || itemDiv.dataset.itemId; // Prefer button, fallback to itemDiv
+    const itemId = targetButton.dataset.itemId || itemDiv.dataset.itemId;
     const itemCostString = targetButton.dataset.itemCost || itemDiv.dataset.itemCost;
     const itemCost = parseInt(itemCostString);
-    // powerupType is also on the button for powerupUpgrade type
     const powerupTypeClicked = targetButton.dataset.powerupType; 
 
     let currentBank = parseInt(localStorage.getItem('currentCoinBank')) || 0;
     
     if (itemType === 'boardSkin' || itemType === 'trailEffect') {
-      // This is existing logic for skins and trails
       const isOwned = localStorage.getItem(`owned_${itemType}_${itemId}`) === 'true';
       let currentEquippedBoardSkin = localStorage.getItem('equipped_boardSkin');
       let currentEquippedTrailEffect = localStorage.getItem('equipped_trailEffect');
@@ -1991,9 +1898,6 @@ document.getElementById('shop-screen').addEventListener('click', function(event)
         }
       }
     } else if (itemType === 'powerupUpgrade') {
-      // itemId here is the specific tier ID like 'slow_boost_1'
-      // itemCost is the cost for that tier
-      // powerupTypeClicked is 'slow', 'magnet', or 'double'
       if (!itemId || isNaN(itemCost) || !powerupTypeClicked) {
         console.error("Powerup upgrade button missing data:", targetButton);
         return;
@@ -2002,16 +1906,14 @@ document.getElementById('shop-screen').addEventListener('click', function(event)
       if (currentBank >= itemCost) {
         currentBank -= itemCost;
         localStorage.setItem('currentCoinBank', currentBank.toString());
-        localStorage.setItem(itemId, 'true'); // Mark this specific tier as purchased
+        localStorage.setItem(itemId, 'true');
         
-        let successMessage = "Upgrade purchased!"; // Default message
+        let successMessage = "Upgrade purchased!";
         const tiers = POWERUP_UPGRADE_TIERS[powerupTypeClicked];
         const purchasedTierInfo = tiers.find(t => t.id === itemId);
 
         if (purchasedTierInfo) {
-            // Extract "Tier X" from "Tier X:<br>Duration Y SEC"
             const tierText = purchasedTierInfo.description.split(':')[0]; 
-            // Capitalize the power-up type name (e.g., slow -> Slow)
             const powerupName = powerupTypeClicked.charAt(0).toUpperCase() + powerupTypeClicked.slice(1);
             successMessage = `${tierText} for ${powerupName} purchased!`;
         }
@@ -2021,7 +1923,6 @@ document.getElementById('shop-screen').addEventListener('click', function(event)
         showShopMessage('Not enough coins!', 'error');
       }
     } else if (itemType === 'comboCoinBonus') {
-      // itemId and itemCost are already correctly parsed from the button or itemDiv data attributes.
       const itemData = SHOP_ITEMS.comboCoinBonuses[itemId];
 
       if (!itemId || isNaN(itemCost) || !itemData) {
@@ -2030,7 +1931,6 @@ document.getElementById('shop-screen').addEventListener('click', function(event)
         return;
       }
       
-      // Check if already owned (though refreshShopItemStates should prevent clicking)
       if (localStorage.getItem(itemId) === 'true') {
         showShopMessage('Item already owned!', 'info');
         return;
@@ -2039,13 +1939,13 @@ document.getElementById('shop-screen').addEventListener('click', function(event)
       if (currentBank >= itemCost) {
         currentBank -= itemCost;
         localStorage.setItem('currentCoinBank', currentBank.toString());
-        localStorage.setItem(itemId, 'true'); // Mark this bonus as purchased using its ID as the key
+        localStorage.setItem(itemId, 'true');
         
         showShopMessage(`${itemData.name} purchased and activated!`, 'success');
       } else {
         showShopMessage('Not enough coins!', 'error');
       }
-    } else if (itemType === 'survivalUpgrade') { // NEW ELSE IF BLOCK for purchase
+    } else if (itemType === 'survivalUpgrade') {
       const itemId = targetButton.dataset.itemId || itemDiv.dataset.itemId;
       const itemCostString = targetButton.dataset.itemCost || itemDiv.dataset.itemCost;
       const itemCost = parseInt(itemCostString);
@@ -2070,16 +1970,15 @@ document.getElementById('shop-screen').addEventListener('click', function(event)
       }
     }
 
-    // Common actions after any shop button click
+    
     refreshShopItemStates(); 
     updateStatsDisplay(); 
-    if (itemDiv && itemDiv.dataset.itemType === 'trailEffect') { // Check if itemDiv exists
+    if (itemDiv && itemDiv.dataset.itemType === 'trailEffect') {
         stopShopTrailPreview();
     }
   }
 });
 
-// Function to update the shop player preview element in the HUD
 function updateShopPlayerPreview(skinId) {
   if (!shopPlayerPreviewElement) {
     console.error("[PreviewFIX] Shop preview element not found!"); 
@@ -2087,7 +1986,6 @@ function updateShopPlayerPreview(skinId) {
   }
   console.log("[PreviewFIX] Updating shop preview with skinId:", skinId); 
 
-  // Remove any existing skin classes first
   for (const id in SHOP_ITEMS.boardSkins) {
     shopPlayerPreviewElement.classList.remove('skin-' + id);
   }
@@ -2106,7 +2004,6 @@ function stopShopTrailPreview() {
     clearInterval(shopPreviewTrailInterval);
     shopPreviewTrailInterval = null;
   }
-  // Remove any existing trail particles from the preview HUD
   const previewHud = document.getElementById('shop-item-preview-hud');
   if (previewHud) {
     const existingParticles = previewHud.querySelectorAll('.trail-particle-preview');
@@ -2115,9 +2012,9 @@ function stopShopTrailPreview() {
 }
 
 function startShopTrailPreview(trailId) {
-  stopShopTrailPreview(); // Stop any existing trail preview first
+  stopShopTrailPreview(); 
   if (!trailId || !SHOP_ITEMS.trailEffects[trailId] || !shopPlayerPreviewElement) {
-    return; // Invalid trail or preview element not found
+    return; 
   }
 
   const previewHud = document.getElementById('shop-item-preview-hud');
@@ -2125,7 +2022,6 @@ function startShopTrailPreview(trailId) {
 
   shopPreviewTrailInterval = setInterval(() => {
     const particle = document.createElement('div');
-    // Add a distinct class for preview particles to avoid conflict and for specific removal
     particle.classList.add('trail-particle', 'trail-particle-preview'); 
     let particleTypeClass = '';
 
@@ -2138,7 +2034,7 @@ function startShopTrailPreview(trailId) {
     else if (trailId === 'digitalLineTrail') particleTypeClass = 'trail-digital-line';
     else if (trailId === 'electricStatic') particleTypeClass = 'trail-electric-static';
     else {
-      stopShopTrailPreview(); // Unknown trail, stop everything
+      stopShopTrailPreview(); 
       return;
     }
     particle.classList.add(particleTypeClass);
@@ -2146,23 +2042,18 @@ function startShopTrailPreview(trailId) {
     const previewPaddleRect = shopPlayerPreviewElement.getBoundingClientRect();
     const hudRect = previewHud.getBoundingClientRect();
 
-    // Calculate initial particle dimensions based on trail type for positioning
-    // These should roughly match the particle's CSS dimensions or be an average
     let pWidth = 6, pHeight = 6;
     if (trailId === 'digitalLineTrail') { pWidth = 15; pHeight = 3; }
     else if (trailId === 'electricStatic') { pWidth = 2; pHeight = 8; } 
 
-    // Position relative to the #shop-player-preview-element, but within the #shop-item-preview-hud
     let particleX = (shopPlayerPreviewElement.offsetLeft + shopPlayerPreviewElement.offsetWidth / 2) - (pWidth / 2);
     let particleY = (shopPlayerPreviewElement.offsetTop + shopPlayerPreviewElement.offsetHeight / 2) - (pHeight / 2);
     
-    // Adjustments similar to actual game trail, but relative to the preview paddle
     if (trailId === 'fireSparks') {
         particleX += (Math.random() - 0.5) * shopPlayerPreviewElement.offsetWidth * 0.7;
         particleY += shopPlayerPreviewElement.offsetHeight * 0.3;
     } else if (trailId === 'digitalLineTrail') {
         particleY = shopPlayerPreviewElement.offsetTop + shopPlayerPreviewElement.offsetHeight - (pHeight / 2) + 5;
-        // particleX remains centered for digital line for this preview
     } else if (trailId === 'electricStatic') {
         particleX += (Math.random() - 0.5) * shopPlayerPreviewElement.offsetWidth * 0.9;
         particleY += (Math.random() - 0.5) * shopPlayerPreviewElement.offsetHeight * 0.9;
@@ -2171,9 +2062,9 @@ function startShopTrailPreview(trailId) {
     particle.style.left = particleX + 'px';
     particle.style.top = particleY + 'px';
 
-    previewHud.appendChild(particle); // Append to HUD to allow overflow if animations go outside paddle
+    previewHud.appendChild(particle); 
 
-    let animationDuration = 500; // Default
+    let animationDuration = 500; 
     if (trailId === 'digitalLineTrail') animationDuration = 400;
     if (trailId === 'electricStatic') animationDuration = 250;
     if (trailId === 'fireSparks') animationDuration = 600;
@@ -2181,7 +2072,7 @@ function startShopTrailPreview(trailId) {
     setTimeout(() => {
       particle.remove();
     }, animationDuration);
-  }, 90); // Interval for spawning preview particles, adjust for density
+  }, 90);
 }
 
 // Helper function to determine max health based on upgrade
