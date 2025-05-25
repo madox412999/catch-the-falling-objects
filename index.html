@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Catch the Falling Objects</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="menu">
+    <h1>Catch the Falling Objects</h1>
+    <p id="menu-high-score-display">High Score: 0</p>
+    <button id="start-btn">Start Game</button>
+    <button id="shop-btn">Shop</button>
+    <br>
+    <br>
+    <div id="real-time-stats">
+      <h2>All Game Stats</h2>
+      <p>🏦 Your cash: <span id="stats-current-bank">0</span></p>
+      <p>🏆 Highest Level Reached: <span id="stats-highest-level">1</span></p>
+      <p>🔥 All-Time Longest Streak: <span id="stats-longest-streak">0</span></p>
+      <p>💰 All-Time Coins Caught: <span id="stats-all-time-coins">0</span></p>
+      <p>⏱️ All-Time Survived: <span id="stats-all-time-survived">0s</span></p>
+    </div>
+
+    <!-- Main Menu Instructions Container - MOVED HERE -->
+    <div id="main-menu-instructions">
+        <h2>How to Play</h2>
+        <div class="instructions-section">
+            <h3>Core Gameplay</h3>
+            <p>Move your <strong>Player Paddle</strong> (at the bottom) left and right using the <strong>Arrow Keys</strong></strong>.</p>
+            <p>Catch <strong>Gold Coins</strong> to increase your score. Each coin is worth <strong>1 point</strong>.</p>
+            <p>Avoid <strong>Red Bombs!</strong> Hitting a bomb will cost you a life.</p>
+            <p>You start with <strong>3 Hearts</strong>. Lose all hearts, and the game is over.</p>
+        </div>
+        <div class="instructions-section">
+            <h3>Levels & Difficulty</h3>
+            <p>The game gets progressively harder every level.</p>
+            <p>Higher levels mean: <em>Faster falling objects</em>, <em>More bombs</em>, and sometimes <em>New challenges</em> like Bosses or faster bombs.</p>
+        </div>
+        <div class="instructions-section">
+            <h3>Scoring & Streaks</h3>
+            <p>Your <strong>Score</strong> is your <strong>Coins</strong>.In game score is displayed at the top left.</p>
+            <p>Catch coins consecutively to build a <strong>Streak</strong>. Streaks give bonus multipliers to your score for each coin caught.</p>
+            <p>Missing a coin or hitting a bomb will <em>break your streak</em> .</p>
+        </div>
+        <div class="instructions-section">
+            <h3>Power-ups</h3>
+            <p>Occasionally, special power-ups will fall. Catch them to activate their effects:</p>
+            <ul>
+                <li><strong>SLOW (Cyan):</strong> Temporarily slows down all falling objects.</li>
+                <li><strong>MAGNET (Violet):</strong> Temporarily pulls nearby coins towards your paddle.</li>
+                <li><strong>DOUBLE (Lime):</strong> Temporarily doubles the points earned from each coin.</li>
+                <li><strong>HEART (Red):</strong> Instantly restores one lost heart (if you are not at max health).</li>
+            </ul>
+            <p>Active power-ups and their remaining durations are shown in the <strong>Power-up Bar</strong> below the score.</p>
+        </div>
+         <div class="instructions-section">
+            <h3>The Shop</h3>
+            <p>Earn <strong>Coins</strong> during gameplay. These are added to your <strong>Coin Bank</strong> (visible at left near the score during the game).</p>
+            <p>Spend coins in the <strong>Shop</strong> (accessible from the main menu) to buy various upgrades and perks:</p>
+            <ul>
+                <li><strong>Board Skins:</strong> Change the appearance of your player paddle.</li>
+                <li><strong>Power-up Upgrades:</strong> Increase the duration of SLOW, MAGNET, and DOUBLE power-ups.</li>
+                <li><strong>Combo & Coin Bonuses:</strong> Perks like starting with a streak, increasing coin value, or retaining your combo.</li>
+                <li><strong>Survival Upgrades:</strong> Perks like increasing max hearts, faster heart regeneration, or an emergency slow when low on health.</li>
+            </ul>
+            <p>Some items are single purchases, others can be equipped/unequipped.</p>
+        </div>
+        <div class="instructions-section">
+            <h3>Good Luck!</h3>
+            <p>Aim for the high score, unlock all the perks, and master the art of catching those objects!</p>
+            <p style="margin-top: 10px; color: #ccc;">Tip: If you'd like, you can zoom the page in or out (e.g., 110%, 125%, or 90%) to match your screen and preference.</p>
+        </div>
+    </div>
+  </div>
+
+  <div class="game-wrapper" style="display: none;">
+    <h1>Catch the Falling Objects</h1>
+     <div id="powerup-bar">
+      <div id="powerup-label">Power-Up Bar:</div>
+      <div id="powerup-icons"></div>
+    </div>
+    <div id="game-info-live" style="display: flex; justify-content: space-between; padding: 0 10px; align-items: center;">
+      <div id="score" style="font-size: 18px; color: #fff;">Score: 0</div>
+      <div id="live-coin-bank" style="font-size: 18px; color: #FFD700;">💰 Bank: 0</div>
+      <div id="live-high-score-display" style="font-size: 18px; color: #FFD700;">HS: 0</div>
+      <div id="level-up" style="font-size: 18px; color: #fff;">Level: 1</div>
+    </div>
+
+    <div id="game">
+        <div class="stars stars-far"></div>
+        <div class="stars stars-mid"></div>
+        <div class="stars stars-near"></div>
+        <div id="hearts">
+          <img src="heartimage.png" class="heart" alt="Heart" />
+          <img src="heartimage.png" class="heart" alt="Heart" />
+          <img src="heartimage.png" class="heart" alt="Heart" />
+          <img src="heartimage.png" class="heart" alt="Heart" />
+        </div>
+        <div id="player"></div>
+        <div id="drone"></div>
+        <div id="heart-popup">💔 2 hearts left</div>
+        <div id="streak-popup">
+          <div id="streak-main">🔥 Streak!</div>
+          <div id="streak-sub">Score gained x2</div>
+        </div>
+        <div id="lose-streak">
+          <div id="lose-streak-inner">❌ Lose streak!</div>
+        </div>
+        <div id="boss-warning">
+          <div id="boss-warning-inner">⚠️ BOSS INCOMING!</div>
+        </div>
+        <div id="powerup-activation-popup"></div>
+        <div id="new-high-score-popup">NEW HIGH SCORE!</div>
+    </div>
+  </div>
+
+ <div id="game-over-screen" style="display: none;">
+  <h1>Game Over!</h1>
+  <p id="final-score-display">Your Score: 0</p>
+  <p id="high-score-display">High Score: 0</p>
+
+  <!-- ✅ Wrap buttons in a container -->
+  <div class="game-over-buttons">
+    <button id="try-again-btn">Try Again</button>
+    <button id="main-menu-btn">Main Menu</button>
+  </div>
+</div>
+
+  <!-- Shop Screen -->
+  <div id="shop-screen" style="display: none;">
+    <h1>Item Shop</h1>
+    <p id="shop-current-coin-bank">Your Coins: <span class="shop-coin-value">0</span> 💰</p>
+    <button id="back-to-menu-btn">Back to Main Menu</button>
+    <!-- Item Preview Area - Placed below "Back to Main Menu" -->
+    <div id="shop-item-preview-hud">
+      <h3>Skin Preview</h3>
+      <div id="shop-player-preview-element"></div>
+      <!-- Trail previews could go here in the future -->
+    </div>
+    <div id="shop-message-popup" class="shop-message-popup"></div>
+
+    <div class="shop-section" id="board-skins-section">
+      <h2>Board Skins</h2>
+      <div class="shop-item" data-item-id="neonBlueCore" data-item-type="boardSkin" data-item-cost="2000">
+        <span>Neon Blue Core</span>
+        
+        <div>
+          <button class="shop-preview-btn" data-preview-item-id="neonBlueCore" data-preview-item-type="boardSkin">Preview</button>
+          <button class="shop-action-btn">Buy</button>
+        </div>
+      </div>
+      <div class="shop-item" data-item-id="plasmaGoldTrail" data-item-type="boardSkin" data-item-cost="3000">
+        <span>Plasma Gold Trail</span>
+        
+        <div>
+          <button class="shop-preview-btn" data-preview-item-id="plasmaGoldTrail" data-preview-item-type="boardSkin">Preview</button>
+          <button class="shop-action-btn">Buy</button>
+        </div>
+      </div>
+      <div class="shop-item" data-item-id="glitchShadowVariant" data-item-type="boardSkin" data-item-cost="5000">
+        <span>Glitch Shadow Variant</span>
+        
+        <div>
+          <button class="shop-preview-btn" data-preview-item-id="glitchShadowVariant" data-preview-item-type="boardSkin">Preview</button>
+          <button class="shop-action-btn">Buy</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-section" id="trail-effects-section">
+      <h2>Trail Effects</h2>
+      <div class="shop-item" data-item-id="fireSparks" data-item-type="trailEffect" data-item-cost="1000">
+        <span>Fire Sparks</span>
+        
+        <div>
+          <button class="shop-preview-btn" data-preview-item-id="fireSparks" data-preview-item-type="trailEffect">Preview</button>
+          <button class="shop-action-btn">Buy</button>
+        </div>
+      </div>
+      <div class="shop-item" data-item-id="digitalLineTrail" data-item-type="trailEffect" data-item-cost="1500">
+        <span>Digital Line Trail</span>
+        
+        <div>
+          <button class="shop-preview-btn" data-preview-item-id="digitalLineTrail" data-preview-item-type="trailEffect">Preview</button>
+          <button class="shop-action-btn">Buy</button>
+        </div>
+      </div>
+      <div class="shop-item" data-item-id="electricStatic" data-item-type="trailEffect" data-item-cost="1200">
+        <span>Electric Static</span>
+        
+        <div>
+          <button class="shop-preview-btn" data-preview-item-id="electricStatic" data-preview-item-type="trailEffect">Preview</button>
+          <button class="shop-action-btn">Buy</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-section" id="powerup-upgrades-section">
+      <h2>Power-Up Duration Upgrades</h2>
+
+      <!-- SLOW Duration Perk -->
+      <div class="powerup-category" data-powerup-type="slow">
+        <h3>🧊 SLOW Duration Perk</h3>
+        <div class="shop-item" data-item-type="powerupUpgrade">
+          <span class="item-description"></span>
+          <span class="item-cost-display"></span>
+          <div><button class="shop-action-btn"></button></div>
+        </div>
+      </div>
+
+      <!-- MAGNET Duration Perk -->
+      <div class="powerup-category" data-powerup-type="magnet">
+        <h3>🧲 MAGNET Duration Perk</h3>
+        <div class="shop-item" data-item-type="powerupUpgrade">
+          <span class="item-description"></span>
+          <span class="item-cost-display"></span>
+          <div><button class="shop-action-btn"></button></div>
+        </div>
+      </div>
+
+      <!-- DOUBLE Duration Perk -->
+      <div class="powerup-category" data-powerup-type="double">
+        <h3>✨ DOUBLE Duration Perk</h3>
+        <div class="shop-item" data-item-type="powerupUpgrade">
+          <span class="item-description"></span>
+          <span class="item-cost-display"></span>
+          <div><button class="shop-action-btn"></button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-section" id="combo-coin-bonuses-section">
+      <h2>Combo & Coin Bonuses</h2>
+      <div class="shop-item" data-item-type="comboCoinBonus" data-item-id="streakAccelerator" data-item-cost="1000">
+        <div class="item-details-left">
+          <div class="item-name">Streak Accelerator</div>
+          
+          <p class="item-description">Only 4 coins needed to trigger streak (instead of 5).</p>
+        </div>
+        <button class="shop-action-btn action-buy" data-item-id="streakAccelerator" data-item-cost="1000">Buy (1000💰)</button>
+      </div>
+      <div class="shop-item" data-item-type="comboCoinBonus" data-item-id="comboRetention" data-item-cost="1500">
+        <div class="item-details-left">
+          <div class="item-name">Combo Retention</div>
+          
+          <p class="item-description">Can miss 1 coin without breaking an active streak (once per streak).</p>
+        </div>
+        <button class="shop-action-btn action-buy" data-item-id="comboRetention" data-item-cost="1500">Buy (1500💰)</button>
+      </div>
+      <div class="shop-item" data-item-type="comboCoinBonus" data-item-id="streakBonusMultiplier" data-item-cost="2000">
+        <div class="item-details-left">
+          <div class="item-name">Streak Bonus Multiplier</div>
+          
+          <p class="item-description">While in streak mode, each coin caught gives +1 extra coin (total 3 base coins per coin during streak).</p>
+        </div>
+        <button class="shop-action-btn action-buy" data-item-id="streakBonusMultiplier" data-item-cost="2000">Buy (2000💰)</button>
+      </div>
+    </div>
+
+    <div class="shop-section" id="survival-upgrades-section">
+      <h2>Survival Upgrades</h2>
+      <div class="shop-item" data-item-type="survivalUpgrade" data-item-id="heart_upgrade_max4" data-item-cost="5000">
+        <div class="item-details-left">
+          <div class="item-name">❤️ Heart Expansion</div>
+          <p class="item-description">Max hearts permanently increased to 4.</p>
+        </div>
+        <button class="shop-action-btn action-buy" data-item-id="heart_upgrade_max4" data-item-cost="5000">Buy (5000💰)</button>
+      </div>
+      <div class="shop-item" data-item-type="survivalUpgrade" data-item-id="fast_heart_regen" data-item-cost="5000">
+        <div class="item-details-left">
+          <div class="item-name">⏱️ Accelerated Heart Regen</div>
+          <p class="item-description">Heart drops every 8 seconds when you're below max HP(Instead of 10).</p>
+        </div>
+        <button class="shop-action-btn action-buy" data-item-id="fast_heart_regen" data-item-cost="5000">Buy (5000💰)</button>
+      </div>
+      <div class="shop-item" data-item-type="survivalUpgrade" data-item-id="auto_emergency_slow" data-item-cost="5000">
+        <div class="item-details-left">
+          <div class="item-name">🧊 Emergency Slow Trigger</div>
+          <p class="item-description">When at 1 heart, instantly activates SLOW for 3 seconds.</p>
+        </div>
+        <button class="shop-action-btn action-buy" data-item-id="auto_emergency_slow" data-item-cost="5000">Buy (5000💰)</button>
+      </div>
+    </div>
+    
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
