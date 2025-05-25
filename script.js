@@ -1836,7 +1836,7 @@ function refreshShopItemStates() {
       if (nextTierIndex < tiers.length) {
         const nextTier = tiers[nextTierIndex];
         if (descriptionDisplay) descriptionDisplay.innerHTML = nextTier.description;
-        actionButton.textContent = `Buy Upgrade (${nextTier.cost}💰)`;
+        actionButton.textContent = `Buy  (${nextTier.cost}💰)`;
         actionButton.classList.add('action-buy');
         actionButton.dataset.itemId = nextTier.id; 
         actionButton.dataset.itemCost = nextTier.cost;
