@@ -81,38 +81,55 @@
       <div id="powerup-label">Power-Up Bar:</div>
       <div id="powerup-icons"></div>
     </div>
-    <div id="game-info-live" style="display: flex; justify-content: space-between; padding: 0 10px; align-items: center;">
-      <div id="score" style="font-size: 18px; color: #fff;">Score: 0</div>
-      <div id="live-coin-bank" style="font-size: 18px; color: #FFD700;">💰 Bank: 0</div>
-      <div id="live-high-score-display" style="font-size: 18px; color: #FFD700;">HS: 0</div>
-      <div id="level-up" style="font-size: 18px; color: #fff;">Level: 1</div>
-    </div>
+    <!-- New wrapper for game and side controls -->
+    <div class="game-area-with-controls" style="display: flex; flex-direction: column; align-items: center;">
+      <div id="game-info-live" style="display: flex; justify-content: space-between; padding: 0 3px; align-items: center; width: 500px; margin-bottom: 10px; box-sizing: border-box;">
+        <div id="score" style="font-size: 18px;">Score: 0</div>
+        <div id="live-coin-bank" style="font-size: 18px; color: #FFD700;">💰 Bank: 0</div>
+        <div id="live-high-score-display" style="font-size: 18px; color: #FFD700;">HS: 0</div>
+        <div id="level-up" style="font-size: 18px;">Level: 1</div>
+      </div>
 
-    <div id="game">
-        <div class="stars stars-far"></div>
-        <div class="stars stars-mid"></div>
-        <div class="stars stars-near"></div>
-        <div id="hearts">
-          <img src="heartimage.png" class="heart" alt="Heart" />
-          <img src="heartimage.png" class="heart" alt="Heart" />
-          <img src="heartimage.png" class="heart" alt="Heart" />
-          <img src="heartimage.png" class="heart" alt="Heart" />
+      <!-- New inner wrapper for game and side buttons -->
+      <div style="display: flex; justify-content: center; align-items: center; width: auto; transform: translateX(80px);"> 
+        <div id="game">
+            <div class="stars stars-far"></div>
+            <div class="stars stars-mid"></div>
+            <div class="stars stars-near"></div>
+            <div id="hearts">
+              <img src="heartimage.png" class="heart" alt="Heart" />
+              <img src="heartimage.png" class="heart" alt="Heart" />
+              <img src="heartimage.png" class="heart" alt="Heart" />
+              <img src="heartimage.png" class="heart" alt="Heart" />
+            </div>
+            <div id="player"></div>
+            <div id="drone"></div>
+
+            <div id="countdown-overlay" style="display: none;">
+              <div id="countdown-text">3</div>
+            </div>
+
+            <div id="heart-popup">💔 2 hearts left</div>
+            <div id="streak-popup">
+              <div id="streak-main">🔥 Streak!</div>
+              <div id="streak-sub">Score gained x2</div>
+            </div>
+            <div id="lose-streak">
+              <div id="lose-streak-inner">❌ Lose streak!</div>
+            </div>
+            <div id="boss-warning">
+              <div id="boss-warning-inner">⚠️ BOSS INCOMING!</div>
+            </div>
+            <div id="powerup-activation-popup"></div>
+            <div id="new-high-score-popup">NEW HIGH SCORE!</div>
         </div>
-        <div id="player"></div>
-        <div id="drone"></div>
-        <div id="heart-popup">💔 2 hearts left</div>
-        <div id="streak-popup">
-          <div id="streak-main">🔥 Streak!</div>
-          <div id="streak-sub">Score gained x2</div>
+
+        <!-- Side buttons container moved here, as a sibling to #game -->
+        <div id="side-buttons-container" style="margin-left: 20px;">
+            <button id="pause-btn" class="ingame-button">Pause</button>
+            <button id="ingame-main-menu-btn" class="ingame-button">Menu</button>
         </div>
-        <div id="lose-streak">
-          <div id="lose-streak-inner">❌ Lose streak!</div>
-        </div>
-        <div id="boss-warning">
-          <div id="boss-warning-inner">⚠️ BOSS INCOMING!</div>
-        </div>
-        <div id="powerup-activation-popup"></div>
-        <div id="new-high-score-popup">NEW HIGH SCORE!</div>
+      </div>
     </div>
   </div>
 
@@ -284,6 +301,10 @@
       </div>
     </div>
     
+  </div>
+
+  <div id="level-transition-overlay">
+    <div id="level-transition-text"></div>
   </div>
 
   <script src="script.js"></script>
